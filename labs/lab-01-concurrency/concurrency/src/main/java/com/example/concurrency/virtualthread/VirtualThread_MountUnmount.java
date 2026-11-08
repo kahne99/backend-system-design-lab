@@ -1,5 +1,7 @@
 package com.example.concurrency.virtualthread;
 
+import com.example.concurrency.utils.CustomLogUtils;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,7 +23,7 @@ public class VirtualThread_MountUnmount {
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
             executor.submit(() -> {
-                log(startTime, "VT-1", "START");
+                CustomLogUtils.log(startTime, "VT-1", "START");
 
                 vt1Started.countDown();
 
@@ -32,7 +34,7 @@ public class VirtualThread_MountUnmount {
                     throw new RuntimeException(e);
                 }
 
-                log(startTime, "VT-1", "END");
+                CustomLogUtils.log(startTime, "VT-1", "END");
 
             });
 
@@ -40,23 +42,11 @@ public class VirtualThread_MountUnmount {
             vt1Started.await();
 
             executor.submit(() -> {
-                log(startTime, "VT-2", "START");
-                log(startTime, "VT-2", "END");
+                CustomLogUtils.log(startTime, "VT-2", "START");
+                CustomLogUtils.log(startTime, "VT-2", "END");
             });
         }
 
-    }
-
-    private static void log(long startTime, String virtualThread, String message) {
-        long elapsed = System.currentTimeMillis() - startTime;
-
-        System.out.printf(
-                "[%4d ms] [%s] [Carrier: %s] %s%n",
-                elapsed,
-                virtualThread,
-                Thread.currentThread(),
-                message
-        );
     }
 }
 
