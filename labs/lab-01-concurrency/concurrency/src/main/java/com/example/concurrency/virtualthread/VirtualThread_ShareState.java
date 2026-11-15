@@ -10,7 +10,7 @@ public class VirtualThread_ShareState {
     private static int synchronizeCounter = 0;
     private static final AtomicInteger atomicCounter = new AtomicInteger(0);
     private static int reentrantLockCounter = 0;
-    private static int violateCounter = 0;
+    private static volatile int violateCounter = 0;
 
     private static final ReentrantLock lock = new ReentrantLock();
 
@@ -30,9 +30,9 @@ public class VirtualThread_ShareState {
     }
 
     /*
-    * Simulating a race condition where more than two threads modify a `counter` without any synchronization mechanism.
-    * Once the progress is completed, the `counter` will be less than the expected value.
-    * */
+     * Simulating a race condition where more than two threads modify a `counter` without any synchronization mechanism.
+     * Once the progress is completed, the `counter` will be less than the expected value.
+     * */
     private static void simulateRateCondition() {
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             for (int i = 0; i < 1_000; i++) {
@@ -53,8 +53,8 @@ public class VirtualThread_ShareState {
     }
 
     /*
-    * This method use `atomic` to ensure the `atomicCounter` variable == expected value.
-    * */
+     * This method use `atomic` to ensure the `atomicCounter` variable == expected value.
+     * */
     private static void simulateShareState_atomic() {
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             for (int i = 0; i < 1_000; i++) {
@@ -73,7 +73,7 @@ public class VirtualThread_ShareState {
                     lock.lock();
 
                     try {
-                        reentrantLockCounter ++;
+                        reentrantLockCounter++;
                     } finally {
                         lock.unlock();
                     }
@@ -89,13 +89,13 @@ public class VirtualThread_ShareState {
         try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
             for (int i = 0; i < 1_000; i++) {
                 executor.submit(() -> {
-                    violateCounter ++;
+                    violateCounter++;
                 });
             }
         }
     }
 
     private static synchronized void increment() {
-        synchronizeCounter ++;
+        synchronizeCounter++;
     }
 }
