@@ -2,10 +2,7 @@ package com.example.concurrency.executor.fundamentials;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /*
  * Manages the lifecycle and submission of tasks. Responsibilities include:
@@ -18,7 +15,8 @@ public class ExecutorService_Fundamentals {
 
     public static void main(String[] args) throws Exception {
 //        execute_submit();
-        invokeAll_invokeAny();
+//        invokeAll_invokeAny();
+        threadpool_executor();
     }
 
     public static void execute_submit() throws Exception {
@@ -79,4 +77,64 @@ public class ExecutorService_Fundamentals {
 
         executor.close();
     }
+
+
+    /*
+     * ThreadPoolExecutor is used to manage worker threads and execute concurrent tasks.
+     * * Core Pool Size: Number of basic worker threads maintained by the executor.
+     * * Maximum Pool Size: Maximum number of worker threads that can be created.
+     * * Keep Alive Time: Time that excess idle workers are kept alive.
+     * * Work Queue: Stores tasks waiting for available workers.
+     *
+     * ThreadPoolExecutor task submission:
+     * 1. If the number of workers < Core Pool Size: -> Create a new worker to execute the task.
+     * 2. If Core Pool Size is reached:  -> Add the task to Work Queue.
+     * 3. If Work Queue is full: -> Create additional workers up to Maximum Pool Size.
+     * 4. If Maximum Pool Size is reached and Work Queue is full: -> Reject the new task based on Rejection Policy.
+     *
+     * Maximum concurrent task capacity: -> Maximum Pool Size + Work Queue Capacity (assuming no previously submitted tasks).
+     */
+    public static void threadpool_executor() throws Exception {
+
+        ExecutorService executor = new ThreadPoolExecutor(
+                2,                           // Core Pool Size
+                10,                                      // Maximum Pool Size
+                60,                                      // Keep Alive Time
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(9)    // Work Queue
+        );
+
+        try {
+            // Submit 20 concurrent tasks
+            for (int i = 0; i < 20; i++) {
+                int taskId = i;
+
+                executor.submit(() -> {
+                    String threadName = Thread.currentThread().getName();
+
+                    System.out.println("Task " + taskId + " started by " + threadName);
+
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+
+                    System.out.println("Task " + taskId + " completed by " + threadName);
+                });
+            }
+
+        } finally {
+            // Stop accepting new tasks
+            executor.shutdown();
+
+            // Wait for all submitted tasks to complete
+            if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+                // Cancel remaining tasks if timeout
+                executor.shutdownNow();
+            }
+        }
+    }
+
 }
